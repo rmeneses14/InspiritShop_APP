@@ -1063,14 +1063,7 @@
         <div class="cards-grid" id="cards-grid"></div>
       </div>
 
-      <!-- Cartas faltantes -->
-      <div id="block-missing" class="result-block" style="display:none">
-        <div class="block-title missing-title">
-          <span>💔</span>
-          <span id="missing-count-label">No disponibles</span>
-        </div>
-        <div class="missing-list" id="missing-list"></div>
-      </div>
+
 
     </section>
 
@@ -1215,7 +1208,6 @@
       const statsHtml = `
         <span class="stat-pill total">📦 ${requested} solicitadas</span>
         <span class="stat-pill found">✅ ${found.length} disponibles</span>
-        ${missing.length > 0 ? `<span class="stat-pill missing">❌ ${missing.length} faltantes</span>` : ''}
       `;
       document.getElementById('results-stats').innerHTML = statsHtml;
       document.getElementById('results-title').textContent =
@@ -1231,18 +1223,7 @@
       }
 
       // Missing cards
-      const blockMissing = document.getElementById('block-missing');
-      const missingList = document.getElementById('missing-list');
-      if (missing.length > 0) {
-        blockMissing.style.display = 'block';
-        document.getElementById('missing-count-label').textContent = `${missing.length} cartas no disponibles`;
-        missingList.innerHTML = missing.map(card => `
-          <div class="missing-row">
-            <span class="missing-name">${escapeHtml(card.name)}</span>
-            <span class="missing-qty">×${card.requested_qty}</span>
-          </div>
-        `).join('');
-      }
+
 
       // CTA WhatsApp si hay alguna encontrada
       if (found.length > 0) {
@@ -1342,9 +1323,7 @@
     function clearResults() {
       document.getElementById('results').classList.remove('visible');
       document.getElementById('block-found').style.display = 'none';
-      document.getElementById('block-missing').style.display = 'none';
       document.getElementById('cards-grid').innerHTML = '';
-      document.getElementById('missing-list').innerHTML = '';
       document.getElementById('cta-section').classList.remove('visible');
     }
 
