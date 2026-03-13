@@ -1205,6 +1205,11 @@
       document.getElementById('results').classList.add('visible');
     }
 
+    const CONDITION_MAP = {
+      nearMint: 'NM', lightlyPlayed: 'LP', moderatelyPlayed: 'MP',
+      heavilyPlayed: 'HP', damaged: 'DMG', mint: 'M'
+    };
+
     function renderCardItem(card) {
       const hasEnough = card.has_enough;
       const imgUrl = card.image_url
@@ -1217,8 +1222,8 @@
       const stockClass = hasEnough ? 'ok' : 'low';
       const stockLabel = hasEnough ? `✓ ${card.available_qty} disponible${card.available_qty > 1 ? 's' : ''}` : `⚠ ${card.available_qty} de ${card.requested_qty}`;
 
-      const priceUsd = card.prices?.usd || card.prices?.usd_foil || null;
-      const priceTag = priceUsd ? `<span class="meta-tag">$${parseFloat(priceUsd).toFixed(2)} USD</span>` : '';
+      const priceUsd = card.prices?.usd_ck || card.prices?.usd || card.prices?.usd_foil || null;
+      const priceTag = priceUsd ? `<span class="meta-tag">$${parseFloat(priceUsd).toFixed(2)} CK</span>` : '';
 
       const qtyWarning = !hasEnough
         ? `<div class="qty-warning">Solo ${card.available_qty} disponible${card.available_qty !== 1 ? 's' : ''}, pediste ${card.requested_qty}</div>`
@@ -1235,7 +1240,7 @@
             <div class="card-name">${escapeHtml(card.name)}</div>
             <div class="card-meta">
               ${card.set_code ? `<span class="meta-tag set">${card.set_code.toUpperCase()}</span>` : ''}
-              ${card.condition ? `<span class="meta-tag cond">${card.condition}</span>` : ''}
+              ${card.condition ? `<span class="meta-tag cond">${CONDITION_MAP[card.condition] || card.condition}</span>` : ''}
               ${priceTag}
             </div>
             <div class="card-qty">Disponible: <span class="qty-num">${card.available_qty}</span></div>
