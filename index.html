@@ -1052,7 +1052,9 @@
 
     <!-- Grid del inventario (fuera del panel para no ocultarse) -->
     <section id="inv-results" style="display:none;margin-top:24px">
+      <div id="inv-page-info" style="text-align:center;margin-bottom:14px;color:var(--text-dim);font-size:0.85rem;letter-spacing:0.08em"></div>
       <div class="cards-grid" id="inv-grid"></div>
+      <div id="inv-pagination" style="display:flex;justify-content:center;align-items:center;gap:8px;margin-top:28px;flex-wrap:wrap"></div>
     </section>
 
     <div id="panel-deck" class="search-panel" style="display:none">
@@ -1358,16 +1360,20 @@
       }
     }
 
-    function filterInventory() {
+    const INV_PAGE_SIZE = 20;
+    let _invPage = 1;
+    let _invFiltered = [];
+
+    function filterInventory(resetPage = true) {
       if (!_invCache) return;
       const q = (document.getElementById('inv-search')?.value || '').toLowerCase().trim();
       const sort = document.getElementById('inv-sort')?.value || 'name';
 
-      let cards = q
+      _invFiltered = q
         ? _invCache.filter(c => c.name.toLowerCase().includes(q))
         : [..._invCache];
 
-      cards.sort((a, b) => {
+      _invFiltered.sort((a, b) => {
         if (sort === 'name')       return a.name.localeCompare(b.name);
         if (sort === 'price_desc') return ((b.prices?.scg || b.prices?.ck || b.prices?.usd || 0)) - ((a.prices?.scg || a.prices?.ck || a.prices?.usd || 0));
         if (sort === 'price_asc')  return ((a.prices?.scg || a.prices?.ck || a.prices?.usd || 0)) - ((b.prices?.scg || b.prices?.ck || b.prices?.usd || 0));
@@ -1375,15 +1381,80 @@
         return 0;
       });
 
-      const grid = document.getElementById('inv-grid');
+      if (resetPage) _invPage = 1;
+      renderInvPage();
+    }
 
-      if (cards.length === 0) {
+    function renderInvPage() {
+      const grid      = document.getElementById('inv-grid');
+      const pageInfo  = document.getElementById('inv-page-info');
+      const paginator = document.getElementById('inv-pagination');
+      const total     = _invFiltered.length;
+      const totalPages = Math.ceil(total / INV_PAGE_SIZE) || 1;
+
+      if (total === 0) {
         grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-dim)">Sin resultados</div>';
+        pageInfo.textContent = '';
+        paginator.innerHTML = '';
         return;
       }
 
-      // Renderizar usando el mismo renderCardItem pero adaptado a inventario
-      grid.innerHTML = cards.map(card => renderInvCard(card)).join('');
+      // Clamp página
+      _invPage = Math.max(1, Math.min(_invPage, totalPages));
+
+      const start = (_invPage - 1) * INV_PAGE_SIZE;
+      const slice = _invFiltered.slice(start, start + INV_PAGE_SIZE);
+
+      pageInfo.textContent = `Mostrando ${start + 1}–${start + slice.length} de ${total} cartas`;
+      grid.innerHTML = slice.map(card => renderInvCard(card)).join('');
+
+      // Paginador
+      paginator.innerHTML = buildPaginator(totalPages);
+
+      // Scroll suave al top del inventario al cambiar página
+      document.getElementById('inv-results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function buildPaginator(totalPages) {
+      if (totalPages <= 1) return '';
+
+      const btnStyle = (active) => `
+        style="padding:8px 14px;border-radius:6px;border:1px solid var(--border);
+        background:${active ? 'var(--primary)' : 'var(--bg-input)'};
+        color:${active ? '#000' : 'var(--text)'};
+        cursor:${active ? 'default' : 'pointer'};
+        font-family:inherit;font-size:0.85rem;min-width:38px;
+        transition:background 0.2s,color 0.2s;"
+      `;
+
+      let btns = '';
+
+      // Prev
+      if (_invPage > 1)
+        btns += `<button onclick="goInvPage(${_invPage - 1})" ${btnStyle(false)}>‹</button>`;
+
+      // Páginas con elipsis
+      const range = new Set([1, totalPages, _invPage, _invPage-1, _invPage+1].filter(p => p >= 1 && p <= totalPages));
+      const pages = [...range].sort((a,b) => a-b);
+
+      let prev = null;
+      for (const p of pages) {
+        if (prev && p - prev > 1)
+          btns += `<span style="color:var(--text-dim);padding:0 4px">…</span>`;
+        btns += `<button onclick="goInvPage(${p})" ${btnStyle(p === _invPage)}>${p}</button>`;
+        prev = p;
+      }
+
+      // Next
+      if (_invPage < totalPages)
+        btns += `<button onclick="goInvPage(${_invPage + 1})" ${btnStyle(false)}>›</button>`;
+
+      return btns;
+    }
+
+    function goInvPage(p) {
+      _invPage = p;
+      renderInvPage();
     }
 
     function renderInvCard(card) {
