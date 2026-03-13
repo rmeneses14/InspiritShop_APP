@@ -1212,8 +1212,7 @@
 
     function renderCardItem(card) {
       const hasEnough = card.has_enough;
-      const imgUrl = card.image_url
-        || (card.scryfall_id ? `https://api.scryfall.com/cards/${card.scryfall_id}?format=image&version=normal` : '');
+      const imgUrl = (card.scryfall_id ? `https://api.scryfall.com/cards/${card.scryfall_id}?format=image&version=normal` : card.image_url || '');
       const imgOrPlaceholder = imgUrl
         ? `<img src="${escapeHtml(imgUrl)}" alt="${escapeHtml(card.name)}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=card-image-placeholder>✦</div>'">`
         : `<div class="card-image-placeholder">✦</div>`;
@@ -1222,8 +1221,10 @@
       const stockClass = hasEnough ? 'ok' : 'low';
       const stockLabel = hasEnough ? `✓ ${card.available_qty} disponible${card.available_qty > 1 ? 's' : ''}` : `⚠ ${card.available_qty} de ${card.requested_qty}`;
 
-      const priceUsd = card.prices?.usd_ck || card.prices?.usd || card.prices?.usd_foil || null;
-      const priceTag = priceUsd ? `<span class="meta-tag">$${parseFloat(priceUsd).toFixed(2)} CK</span>` : '';
+      const p = card.prices || {};
+      const priceVal = p.scg || p.ck || p.usd || null;
+      const priceLabel = p.scg ? 'SCG' : p.ck ? 'CK' : 'TCG';
+      const priceTag = priceVal ? `<span class="meta-tag">$${parseFloat(priceVal).toFixed(2)} ${priceLabel}</span>` : '';
 
       const qtyWarning = !hasEnough
         ? `<div class="qty-warning">Solo ${card.available_qty} disponible${card.available_qty !== 1 ? 's' : ''}, pediste ${card.requested_qty}</div>`
