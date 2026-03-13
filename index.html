@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Inspirit Shop — Cartas MTG</title>
+
+  <!-- PWA META TAGS -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#0d1b2e" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Inspirit" />
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180x180.png" />
+  <link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152x152.png" />
+  <link rel="apple-touch-icon" sizes="120x120" href="icons/icon-120x120.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="icons/icon-16x16.png" />
+  <meta name="msapplication-TileColor" content="#0d1b2e" />
+  <meta name="msapplication-TileImage" content="icons/icon-144x144.png" />
+
+  <!-- Google Fonts: Cinzel (display oriental/épica) + EB Garamond (cuerpo refinado) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ─── Variables: Paleta Jeskai / Inspirit ─────────────────────────────── */
+    :root {
+      --primary:        #c8893a;   /* Oro Jeskai */
+      --primary-bright: #f0b060;
+      --primary-glow:   rgba(200,137,58, 0.35);
+      --primary-dim:    #8a5c20;
+
+      --crimson:        #c0392b;   /* Rojo del dragón */
+      --crimson-bright: #e74c3c;
+      --crimson-glow:   rgba(192,57,43, 0.3);
+
+      --azure:          #2980b9;   /* Azul océano Jeskai */
+      --azure-bright:   #3498db;
+      --azure-glow:     rgba(41,128,185, 0.3);
+
+      --spirit-white:   #e8dcc8;   /* Blanco espiritual */
+      --spirit-dim:     #a89878;
+
+      --bg:             #080e18;   /* Fondo profundo nocturno */
+      --bg-card:        #0d1624;
+      --bg-panel:       #111e30;
+      --bg-input:       #0a1520;
+      --bg-overlay:     rgba(8,14,24, 0.92);
+
+      --border:         rgba(200,137,58, 0.15);
+      --border-primary: rgba(200,137,58, 0.45);
+      --border-crimson: rgba(192,57,43, 0.4);
+      --border-azure:   rgba(41,128,185, 0.4);
+
+      --text:           #e8dcc8;
+      --text-dim:       #8a7a60;
+      --text-bright:    #f8f0e0;
+
+      --safe-top:    env(safe-area-inset-top,    0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-left:   env(safe-area-inset-left,   0px);
+      --safe-right:  env(safe-area-inset-right,  0px);
+
+      --radius: 4px;
+      --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* ─── Reset & Base ────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'EB Garamond', Georgia, serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding-top: var(--safe-top);
+      padding-bottom: var(--safe-bottom);
+      padding-left: var(--safe-left);
+      padding-right: var(--safe-right);
+      overflow-x: hidden;
+    }
+
+    /* ─── Fondo animado con runas y energía ──────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 40% at 20% 30%, rgba(41,128,185,0.08) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 50% at 80% 70%, rgba(192,57,43,0.07) 0%, transparent 60%),
+        radial-gradient(ellipse 80% 60% at 50% 50%, rgba(200,137,58,0.04) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+      animation: auraShift 12s ease-in-out infinite alternate;
+    }
+
+    @keyframes auraShift {
+      0%   { opacity: 0.6; transform: scale(1); }
+      50%  { opacity: 1;   transform: scale(1.05); }
+      100% { opacity: 0.7; transform: scale(0.98); }
+    }
+
+    /* Líneas de energía de fondo */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(200,137,58,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(200,137,58,0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ─── Header / Navbar ─────────────────────────────────────────────────── */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(8,14,24,0.9);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-primary);
+      padding: calc(12px + var(--safe-top)) 24px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .navbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      text-decoration: none;
+    }
+
+    .brand-emblem {
+      width: 44px;
+      height: 44px;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .brand-emblem svg {
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0 0 8px var(--primary-glow));
+      animation: emblemPulse 4s ease-in-out infinite;
+    }
+
+    @keyframes emblemPulse {
+      0%, 100% { filter: drop-shadow(0 0 8px rgba(200,137,58,0.4)); }
+      50%       { filter: drop-shadow(0 0 16px rgba(200,137,58,0.8)) drop-shadow(0 0 32px rgba(192,57,43,0.3)); }
+    }
+
+    .brand-name {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--primary-bright);
+      text-shadow: 0 0 20px var(--primary-glow);
+      line-height: 1.1;
+    }
+
+    .brand-subtitle {
+      font-family: 'Cinzel', serif;
+      font-size: 0.6rem;
+      letter-spacing: 0.25em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+
+    .navbar-badge {
+      font-family: 'Cinzel', serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      color: var(--azure-bright);
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border: 1px solid var(--border-azure);
+      border-radius: 2px;
+      background: rgba(41,128,185,0.08);
+    }
+
+    /* ─── Hero Section ────────────────────────────────────────────────────── */
+    .hero {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 60px 24px 40px;
+      overflow: hidden;
+    }
+
+    .hero-rune {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: clamp(2.2rem, 6vw, 4rem);
+      font-weight: 900;
+      color: transparent;
+      background: linear-gradient(135deg, var(--azure-bright) 0%, var(--primary-bright) 40%, var(--crimson-bright) 80%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      text-shadow: none;
+      line-height: 1.1;
+      margin-bottom: 12px;
+      animation: titleReveal 1s ease forwards;
+    }
+
+    @keyframes titleReveal {
+      from { opacity: 0; transform: translateY(-20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero-tagline {
+      font-family: 'Cinzel', serif;
+      font-size: 0.75rem;
+      letter-spacing: 0.35em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-bottom: 32px;
+      animation: fadeIn 1.4s ease forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    /* Línea decorativa Jeskai */
+    .hero-divider {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 40px;
+    }
+
+    .hero-divider::before,
+    .hero-divider::after {
+      content: '';
+      flex: 1;
+      max-width: 200px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--primary), transparent);
+    }
+
+    .divider-gem {
+      width: 10px;
+      height: 10px;
+      background: var(--primary-bright);
+      transform: rotate(45deg);
+      box-shadow: 0 0 12px var(--primary-glow);
+    }
+
+    /* ─── Contenedor principal ────────────────────────────────────────────── */
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+
+    /* ─── Tabs de modo de búsqueda ────────────────────────────────────────── */
+    .mode-tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 32px;
+      border: 1px solid var(--border-primary);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .mode-tab {
+      flex: 1;
+      padding: 14px 20px;
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+      font-family: 'Cinzel', serif;
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .mode-tab::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, var(--primary-glow), transparent);
+      opacity: 0;
+      transition: opacity var(--transition);
+    }
+
+    .mode-tab:hover::before { opacity: 0.5; }
+    .mode-tab:hover { color: var(--spirit-white); }
+
+    .mode-tab.active {
+      background: linear-gradient(135deg, rgba(200,137,58,0.2), rgba(192,57,43,0.1));
+      color: var(--primary-bright);
+      border-right: 1px solid var(--border-primary);
+    }
+
+    .mode-tab.active::before { opacity: 1; }
+
+    .mode-tab:not(:last-child) {
+      border-right: 1px solid var(--border);
+    }
+
+    .btn-clear {
+      background: transparent;
+      border: 1px solid var(--border-crimson);
+      color: #c08080;
+      font-family: 'Cinzel', serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      padding: 5px 12px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .btn-clear:hover {
+      background: rgba(192,57,43,0.12);
+      color: #e88080;
+      border-color: rgba(192,57,43,0.7);
+    }
+
+    /* ─── Panel de búsqueda ───────────────────────────────────────────────── */
+    .search-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-primary);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin-bottom: 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .search-panel::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--azure), var(--primary), var(--crimson));
+    }
+
+    .panel-title {
+      font-family: 'Cinzel', serif;
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      color: var(--primary);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .input-field {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'EB Garamond', serif;
+      font-size: 1rem;
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      transition: border-color var(--transition), box-shadow var(--transition);
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    .input-field:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow), inset 0 1px 3px rgba(0,0,0,0.3);
+    }
+
+    .input-field::placeholder { color: var(--text-dim); }
+
+    textarea.input-field {
+      resize: vertical;
+      min-height: 160px;
+      line-height: 1.7;
+      font-size: 0.95rem;
+    }
+
+    .input-hint {
+      font-family: 'Cinzel', serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+      margin-top: 8px;
+    }
+
+    /* ─── Botón principal ─────────────────────────────────────────────────── */
+    .btn-search {
+      width: 100%;
+      margin-top: 20px;
+      padding: 16px 32px;
+      background: linear-gradient(135deg, #8a2010 0%, #c0392b 40%, #c8893a 100%);
+      border: 1px solid rgba(200,137,58,0.5);
+      color: var(--spirit-white);
+      font-family: 'Cinzel', serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: var(--radius);
+      transition: all var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-search::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+      opacity: 0;
+      transition: opacity var(--transition);
+    }
+
+    .btn-search:hover::before { opacity: 1; }
+
+    .btn-search:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(192,57,43,0.4), 0 0 20px rgba(200,137,58,0.2);
+    }
+
+    .btn-search:active { transform: translateY(0); }
+
+    .btn-search:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* ─── Estado de carga ─────────────────────────────────────────────────── */
+    .loading-state {
+      display: none;
+      text-align: center;
+      padding: 48px 24px;
+    }
+
+    .loading-state.visible { display: block; }
+
+    .loading-rune {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: 2.5rem;
+      color: var(--primary);
+      animation: runeRotate 2s linear infinite;
+      display: inline-block;
+      margin-bottom: 16px;
+    }
+
+    @keyframes runeRotate {
+      0%   { transform: rotate(0deg);   text-shadow: 0 0 10px var(--primary-glow); }
+      50%  { transform: rotate(180deg); text-shadow: 0 0 30px var(--primary-glow), 0 0 60px rgba(192,57,43,0.3); }
+      100% { transform: rotate(360deg); text-shadow: 0 0 10px var(--primary-glow); }
+    }
+
+    .loading-text {
+      font-family: 'Cinzel', serif;
+      font-size: 0.75rem;
+      letter-spacing: 0.25em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+
+    .loading-sub {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      margin-top: 8px;
+      font-style: italic;
+    }
+
+    /* ─── Error state ─────────────────────────────────────────────────────── */
+    .error-msg {
+      display: none;
+      background: rgba(192,57,43,0.1);
+      border: 1px solid var(--border-crimson);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      color: #e88080;
+      font-size: 0.9rem;
+      margin-top: 16px;
+    }
+
+    .error-msg.visible { display: block; }
+
+    /* ─── Resultados ──────────────────────────────────────────────────────── */
+    .results-section { display: none; }
+    .results-section.visible { display: block; }
+
+    .results-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .results-title {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: 1.2rem;
+      color: var(--primary-bright);
+      text-shadow: 0 0 20px var(--primary-glow);
+    }
+
+    .results-stats {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .stat-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 2px;
+      font-family: 'Cinzel', serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+    }
+
+    .stat-pill.found {
+      background: rgba(41,128,185,0.15);
+      border: 1px solid var(--border-azure);
+      color: var(--azure-bright);
+    }
+
+    .stat-pill.missing {
+      background: rgba(192,57,43,0.12);
+      border: 1px solid var(--border-crimson);
+      color: #e88080;
+    }
+
+    .stat-pill.total {
+      background: rgba(200,137,58,0.1);
+      border: 1px solid var(--border-primary);
+      color: var(--primary-bright);
+    }
+
+    /* ─── Sub-secciones de resultados ─────────────────────────────────────── */
+    .result-block {
+      margin-bottom: 32px;
+    }
+
+    .block-title {
+      font-family: 'Cinzel', serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      padding: 10px 16px;
+      margin-bottom: 12px;
+      border-radius: var(--radius) var(--radius) 0 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .block-title.found-title {
+      background: rgba(41,128,185,0.1);
+      border: 1px solid var(--border-azure);
+      color: var(--azure-bright);
+    }
+
+    .block-title.missing-title {
+      background: rgba(192,57,43,0.08);
+      border: 1px solid var(--border-crimson);
+      color: #e88080;
+    }
+
+    /* ─── Grid de cartas ──────────────────────────────────────────────────── */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .card-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: all var(--transition);
+      cursor: default;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-item:hover {
+      border-color: var(--border-primary);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4), 0 0 12px var(--primary-glow);
+    }
+
+    .card-item.insufficient {
+      border-color: rgba(192,57,43,0.25);
+    }
+
+    .card-item.insufficient:hover {
+      border-color: var(--border-crimson);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4), 0 0 12px var(--crimson-glow);
+    }
+
+    .card-image-wrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 63/88;
+      background: var(--bg-panel);
+      overflow: hidden;
+    }
+
+    .card-image-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+      display: block;
+    }
+
+    .card-item:hover .card-image-wrap img { transform: scale(1.03); }
+
+    .card-image-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Cinzel Decorative', serif;
+      font-size: 2rem;
+      color: var(--text-dim);
+      opacity: 0.3;
+    }
+
+    /* Badge de stock */
+    .stock-badge {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      padding: 3px 9px;
+      font-family: 'Cinzel', serif;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      border-radius: 2px;
+    }
+
+    .stock-badge.ok {
+      background: rgba(41,128,185,0.85);
+      color: white;
+      border: 1px solid rgba(100,180,255,0.4);
+    }
+
+    .stock-badge.low {
+      background: rgba(192,57,43,0.85);
+      color: white;
+      border: 1px solid rgba(255,100,80,0.4);
+    }
+
+    .foil-badge {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      padding: 3px 9px;
+      background: linear-gradient(135deg, rgba(200,137,58,0.85), rgba(240,180,90,0.85));
+      color: var(--bg);
+      font-family: 'Cinzel', serif;
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      border-radius: 2px;
+      text-transform: uppercase;
+    }
+
+    /* Info de carta */
+    .card-info {
+      padding: 14px 16px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .card-name {
+      font-family: 'Cinzel', serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-bright);
+      line-height: 1.3;
+    }
+
+    .card-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 2px;
+    }
+
+    .meta-tag {
+      font-size: 0.65rem;
+      font-family: 'Cinzel', serif;
+      letter-spacing: 0.05em;
+      padding: 2px 8px;
+      border-radius: 2px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+
+    .meta-tag.set { color: var(--spirit-dim); }
+    .meta-tag.cond { color: var(--azure-bright); border-color: var(--border-azure); background: rgba(41,128,185,0.06); }
+
+    .card-qty {
+      font-family: 'EB Garamond', serif;
+      font-size: 0.85rem;
+      color: var(--text-dim);
+      margin-top: auto;
+    }
+
+    .card-qty span.qty-num {
+      font-weight: 700;
+      color: var(--primary-bright);
+    }
+
+    .qty-warning {
+      color: #e88080;
+      font-size: 0.75rem;
+      font-style: italic;
+      margin-top: 4px;
+    }
+
+    /* ─── Lista de faltantes ──────────────────────────────────────────────── */
+    .missing-list {
+      background: var(--bg-card);
+      border: 1px solid var(--border-crimson);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .missing-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 11px 16px;
+      border-bottom: 1px solid rgba(192,57,43,0.1);
+      transition: background var(--transition);
+    }
+
+    .missing-row:last-child { border-bottom: none; }
+    .missing-row:hover { background: rgba(192,57,43,0.05); }
+
+    .missing-name {
+      font-family: 'EB Garamond', serif;
+      font-size: 0.95rem;
+      color: #c08080;
+    }
+
+    .missing-qty {
+      font-family: 'Cinzel', serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+    }
+
+    /* ─── CTA WhatsApp / Pedido ───────────────────────────────────────────── */
+    .cta-section {
+      display: none;
+      margin-top: 32px;
+      padding: 28px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-primary);
+      border-radius: var(--radius);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-section.visible { display: block; }
+
+    .cta-section::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--azure), var(--primary), var(--crimson), var(--primary), var(--azure));
+      background-size: 300%;
+      animation: ctaGlow 4s linear infinite;
+    }
+
+    @keyframes ctaGlow {
+      0%   { background-position: 0% 50%; }
+      100% { background-position: 300% 50%; }
+    }
+
+    .cta-title {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: 1rem;
+      color: var(--primary-bright);
+      margin-bottom: 8px;
+    }
+
+    .cta-sub {
+      font-size: 0.9rem;
+      color: var(--text-dim);
+      margin-bottom: 20px;
+    }
+
+    .btn-whatsapp {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 32px;
+      background: linear-gradient(135deg, #128c3c, #25d366);
+      color: white;
+      text-decoration: none;
+      border-radius: var(--radius);
+      font-family: 'Cinzel', serif;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      transition: all var(--transition);
+      border: 1px solid rgba(37,211,102,0.4);
+    }
+
+    .btn-whatsapp:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(37,211,102,0.3);
+    }
+
+    .btn-whatsapp svg { width: 20px; height: 20px; fill: white; flex-shrink: 0; }
+
+    /* ─── PWA Install btn ─────────────────────────────────────────────────── */
+    #pwa-install-btn {
+      position: fixed;
+      bottom: calc(20px + var(--safe-bottom, 0px));
+      right: 20px;
+      z-index: 1000;
+      padding: 12px 20px;
+      background: linear-gradient(135deg, var(--primary-dim), var(--primary-bright));
+      color: var(--bg);
+      border: none;
+      border-radius: var(--radius);
+      font-family: 'Cinzel', serif;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(200,137,58,0.5);
+      transition: all var(--transition);
+    }
+
+    #pwa-install-btn:not([hidden]):hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(200,137,58,0.7); }
+
+    /* ─── Responsive ──────────────────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      .container { padding: 0 16px 80px; }
+      .hero { padding: 40px 16px 28px; }
+      .navbar { padding: calc(8px + var(--safe-top)) 16px 8px; }
+      .cards-grid { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+      .search-panel { padding: 20px 16px; }
+      .mode-tab { font-size: 0.7rem; padding: 12px 12px; }
+    }
+
+    @media (max-width: 480px) {
+      .container { padding: 0 12px 80px; }
+      .hero-rune { font-size: 1.8rem; }
+      .brand-name { font-size: 0.95rem; }
+      .navbar-badge { display: none; }
+      .cards-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .card-info { padding: 10px 12px; }
+      .card-name { font-size: 0.8rem; }
+      .mode-tabs { flex-direction: column; }
+      .mode-tab { border-right: none !important; border-bottom: 1px solid var(--border); }
+      .results-stats { flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a class="navbar-brand" href="#">
+      <div class="brand-emblem">
+        <!-- Emblema SVG Jeskai: ojo/dragón estilizado -->
+        <svg viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="gemGrad" cx="50%" cy="40%" r="55%">
+              <stop offset="0%" stop-color="#f0b060"/>
+              <stop offset="50%" stop-color="#c8893a"/>
+              <stop offset="100%" stop-color="#6a3d10"/>
+            </radialGradient>
+            <radialGradient id="innerGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#3498db" stop-opacity="0.8"/>
+              <stop offset="100%" stop-color="#2980b9" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <!-- Rombo exterior -->
+          <polygon points="22,2 40,22 22,42 4,22" fill="none" stroke="url(#gemGrad)" stroke-width="1.5"/>
+          <!-- Rombo interior -->
+          <polygon points="22,8 36,22 22,36 8,22" fill="rgba(13,22,36,0.9)" stroke="#c8893a" stroke-width="0.8"/>
+          <!-- Ojo de dragón / energía -->
+          <ellipse cx="22" cy="22" rx="8" ry="5" fill="none" stroke="#c0392b" stroke-width="1.2"/>
+          <ellipse cx="22" cy="22" rx="3" ry="3" fill="url(#innerGlow)"/>
+          <circle cx="22" cy="22" r="1.5" fill="#f0b060"/>
+          <!-- Rayos en los 4 vértices -->
+          <line x1="22" y1="2"  x2="22" y2="8"  stroke="#c8893a" stroke-width="1"/>
+          <line x1="40" y1="22" x2="36" y2="22" stroke="#c8893a" stroke-width="1"/>
+          <line x1="22" y1="42" x2="22" y2="36" stroke="#c8893a" stroke-width="1"/>
+          <line x1="4"  y1="22" x2="8"  y2="22" stroke="#c8893a" stroke-width="1"/>
+          <!-- Líneas de energía diagonales -->
+          <line x1="13" y1="13" x2="17" y2="17" stroke="#3498db" stroke-width="0.6" opacity="0.6"/>
+          <line x1="31" y1="13" x2="27" y2="17" stroke="#3498db" stroke-width="0.6" opacity="0.6"/>
+          <line x1="13" y1="31" x2="17" y2="27" stroke="#c0392b" stroke-width="0.6" opacity="0.6"/>
+          <line x1="31" y1="31" x2="27" y2="27" stroke="#c0392b" stroke-width="0.6" opacity="0.6"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-name">Inspirit</div>
+        <div class="brand-subtitle">Magic: The Gathering</div>
+      </div>
+    </a>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <h1 class="hero-rune">Inspirit Shop</h1>
+    <p class="hero-tagline">Colección · Búsqueda · Venta de Cartas</p>
+    <div class="hero-divider">
+      <div class="divider-gem"></div>
+    </div>
+  </section>
+
+  <!-- Contenido principal -->
+  <div class="container">
+
+    <!-- Tabs de modo -->
+    <div class="mode-tabs" role="tablist">
+      <button class="mode-tab active" id="tab-list" onclick="switchMode('list')" role="tab" aria-selected="true">
+        📋 Lista de cartas
+      </button>
+      <button class="mode-tab" id="tab-deck" onclick="switchMode('deck')" role="tab" aria-selected="false">
+        🔗 Deck Moxfield
+      </button>
+    </div>
+
+    <!-- Panel modo: Lista -->
+    <div id="panel-list" class="search-panel">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <p class="panel-title" style="margin-bottom:0">⚔ Lista de cartas</p>
+        <button class="btn-clear" onclick="clearList()" id="btn-clear" hidden>✕ Limpiar</button>
+      </div>
+      <textarea
+        id="input-list"
+        class="input-field"
+        placeholder="1 Edgar Markov&#10;1 Arcane Signet&#10;1 Austere Command&#10;1 Banner of Kinship&#10;1 Bartolomé del Presidio"
+        aria-label="Lista de cartas"
+        oninput="toggleClearBtn()"
+      ></textarea>
+      <p class="input-hint">Formato: cantidad + espacio + nombre exacto, una carta por línea</p>
+    </div>
+
+    <!-- Panel modo: Deck URL -->
+    <div id="panel-deck" class="search-panel" style="display:none">
+      <p class="panel-title">🔮 URL de Deck en Moxfield</p>
+      <input
+        type="url"
+        id="input-deck"
+        class="input-field"
+        placeholder="https://www.moxfield.com/decks/..."
+        aria-label="URL del deck en Moxfield"
+      />
+      <p class="input-hint">El deck debe ser público en Moxfield</p>
+    </div>
+
+    <!-- Botón buscar -->
+    <button class="btn-search" id="btn-search" onclick="runSearch()">
+      ✦ Invocar Búsqueda ✦
+    </button>
+
+    <!-- Error -->
+    <div id="error-msg" class="error-msg" role="alert"></div>
+
+    <!-- Loading -->
+    <div id="loading" class="loading-state">
+      <div class="loading-rune">✦</div>
+      <p class="loading-text">Consultando los pergaminos...</p>
+      <p class="loading-sub">La primera invocación puede tardar ~30 segundos</p>
+    </div>
+
+    <!-- Resultados -->
+    <section id="results" class="results-section" aria-live="polite">
+
+      <div class="results-header">
+        <h2 class="results-title" id="results-title">Resultados</h2>
+        <div class="results-stats" id="results-stats"></div>
+      </div>
+
+      <!-- Cartas encontradas -->
+      <div id="block-found" class="result-block" style="display:none">
+        <div class="block-title found-title">
+          <span>🌀</span>
+          <span id="found-count-label">Disponibles en colección</span>
+        </div>
+        <div class="cards-grid" id="cards-grid"></div>
+      </div>
+
+      <!-- Cartas faltantes -->
+      <div id="block-missing" class="result-block" style="display:none">
+        <div class="block-title missing-title">
+          <span>💔</span>
+          <span id="missing-count-label">No disponibles</span>
+        </div>
+        <div class="missing-list" id="missing-list"></div>
+      </div>
+
+    </section>
+
+    <!-- CTA WhatsApp -->
+    <div id="cta-section" class="cta-section">
+      <h3 class="cta-title">¿Interesado en las cartas?</h3>
+      <p class="cta-sub">Contactame por WhatsApp para coordinar el pedido y precio.</p>
+      <a id="whatsapp-btn" href="#" target="_blank" rel="noopener noreferrer" class="btn-whatsapp">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+        </svg>
+        Contactar por WhatsApp
+      </a>
+    </div>
+
+  </div><!-- /container -->
+
+  <!-- PWA install btn -->
+  <button id="pwa-install-btn" hidden onclick="pwaInstall()">
+    ⬇ Instalar App
+  </button>
+
+  <!-- ─── Service Worker + PWA ─────────────────────────────────────────── -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', e => {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('pwa-install-btn').removeAttribute('hidden');
+    });
+
+    function pwaInstall() {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(() => {
+        deferredPrompt = null;
+        document.getElementById('pwa-install-btn').setAttribute('hidden', '');
+      });
+    }
+  </script>
+
+  <!-- ─── App Logic ────────────────────────────────────────────────────── -->
+  <script>
+    // ── Config ─────────────────────────────────────────────────────────────
+    const API_URL = 'https://inspiritshop-api.onrender.com';
+    const WHATSAPP_NUMBER = '50600000000';               // ← REEMPLAZAR con tu número (código país incluido)
+
+    let currentMode = 'list';
+
+    function clearList() {
+      document.getElementById('input-list').value = '';
+      document.getElementById('btn-clear').setAttribute('hidden', '');
+      clearResults();
+      hideError();
+    }
+
+    function toggleClearBtn() {
+      const hasText = document.getElementById('input-list').value.trim().length > 0;
+      const btn = document.getElementById('btn-clear');
+      if (hasText) btn.removeAttribute('hidden');
+      else btn.setAttribute('hidden', '');
+    }
+
+    // ── Modo de búsqueda ────────────────────────────────────────────────────
+    function switchMode(mode) {
+      currentMode = mode;
+      document.getElementById('tab-list').classList.toggle('active', mode === 'list');
+      document.getElementById('tab-deck').classList.toggle('active', mode === 'deck');
+      document.getElementById('panel-list').style.display = mode === 'list' ? 'block' : 'none';
+      document.getElementById('panel-deck').style.display = mode === 'deck' ? 'block' : 'none';
+      clearResults();
+    }
+
+    // ── Buscar ──────────────────────────────────────────────────────────────
+    async function runSearch() {
+      const btn = document.getElementById('btn-search');
+      clearResults();
+      hideError();
+      showLoading(true);
+      btn.disabled = true;
+
+      try {
+        let endpoint, body;
+
+        if (currentMode === 'list') {
+          const rawList = document.getElementById('input-list').value.trim();
+          if (!rawList) { showError('Pegá al menos una carta en la lista.'); return; }
+          endpoint = '/search/list';
+          body = { card_list: rawList };
+        } else {
+          const deckUrl = document.getElementById('input-deck').value.trim();
+          if (!deckUrl || !deckUrl.includes('moxfield.com')) {
+            showError('Ingresá una URL válida de Moxfield (https://www.moxfield.com/decks/...)');
+            return;
+          }
+          endpoint = '/search/deck';
+          body = { deck_url: deckUrl };
+        }
+
+        const resp = await fetch(API_URL + endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({}));
+          throw new Error(err.detail || `Error ${resp.status}`);
+        }
+
+        const data = await resp.json();
+        renderResults(data);
+
+      } catch (err) {
+        if (err.name === 'TypeError') {
+          showError('No se pudo conectar con el servidor. Verificá tu conexión o esperá que despierte (~30s).');
+        } else {
+          showError(err.message || 'Ocurrió un error inesperado.');
+        }
+      } finally {
+        showLoading(false);
+        btn.disabled = false;
+      }
+    }
+
+    // ── Render de resultados ────────────────────────────────────────────────
+    function renderResults(data) {
+      const found = data.found || [];
+      const missing = data.missing || [];
+      const requested = data.requested || (found.length + missing.length);
+
+      // Stats
+      const statsHtml = `
+        <span class="stat-pill total">📦 ${requested} solicitadas</span>
+        <span class="stat-pill found">✅ ${found.length} disponibles</span>
+        ${missing.length > 0 ? `<span class="stat-pill missing">❌ ${missing.length} faltantes</span>` : ''}
+      `;
+      document.getElementById('results-stats').innerHTML = statsHtml;
+      document.getElementById('results-title').textContent =
+        found.length === requested ? '¡Todo disponible! 🎉' : 'Resultados de búsqueda';
+
+      // Found cards
+      const blockFound = document.getElementById('block-found');
+      const grid = document.getElementById('cards-grid');
+      if (found.length > 0) {
+        blockFound.style.display = 'block';
+        document.getElementById('found-count-label').textContent = `${found.length} cartas encontradas`;
+        grid.innerHTML = found.map(card => renderCardItem(card)).join('');
+      }
+
+      // Missing cards
+      const blockMissing = document.getElementById('block-missing');
+      const missingList = document.getElementById('missing-list');
+      if (missing.length > 0) {
+        blockMissing.style.display = 'block';
+        document.getElementById('missing-count-label').textContent = `${missing.length} cartas no disponibles`;
+        missingList.innerHTML = missing.map(card => `
+          <div class="missing-row">
+            <span class="missing-name">${escapeHtml(card.name)}</span>
+            <span class="missing-qty">×${card.requested_qty}</span>
+          </div>
+        `).join('');
+      }
+
+      // CTA WhatsApp si hay alguna encontrada
+      if (found.length > 0) {
+        buildWhatsAppLink(found, missing);
+        document.getElementById('cta-section').classList.add('visible');
+      }
+
+      document.getElementById('results').classList.add('visible');
+    }
+
+    function renderCardItem(card) {
+      const hasEnough = card.has_enough;
+      const imgUrl = card.image_url
+        || (card.scryfall_id ? `https://api.scryfall.com/cards/${card.scryfall_id}?format=image&version=normal` : '');
+      const imgOrPlaceholder = imgUrl
+        ? `<img src="${escapeHtml(imgUrl)}" alt="${escapeHtml(card.name)}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=card-image-placeholder>✦</div>'">`
+        : `<div class="card-image-placeholder">✦</div>`;
+
+      const foilBadge = card.foil ? `<div class="foil-badge">✨ Foil</div>` : '';
+      const stockClass = hasEnough ? 'ok' : 'low';
+      const stockLabel = hasEnough ? `✓ ${card.available_qty} disponible${card.available_qty > 1 ? 's' : ''}` : `⚠ ${card.available_qty} de ${card.requested_qty}`;
+
+      const priceUsd = card.prices?.usd || card.prices?.usd_foil || null;
+      const priceTag = priceUsd ? `<span class="meta-tag">$${parseFloat(priceUsd).toFixed(2)} USD</span>` : '';
+
+      const qtyWarning = !hasEnough
+        ? `<div class="qty-warning">Solo ${card.available_qty} disponible${card.available_qty !== 1 ? 's' : ''}, pediste ${card.requested_qty}</div>`
+        : '';
+
+      return `
+        <div class="card-item ${hasEnough ? '' : 'insufficient'}">
+          <div class="card-image-wrap">
+            ${imgOrPlaceholder}
+            ${foilBadge}
+            <div class="stock-badge ${stockClass}">${stockLabel}</div>
+          </div>
+          <div class="card-info">
+            <div class="card-name">${escapeHtml(card.name)}</div>
+            <div class="card-meta">
+              ${card.set_code ? `<span class="meta-tag set">${card.set_code.toUpperCase()}</span>` : ''}
+              ${card.condition ? `<span class="meta-tag cond">${card.condition}</span>` : ''}
+              ${priceTag}
+            </div>
+            <div class="card-qty">Disponible: <span class="qty-num">${card.available_qty}</span></div>
+            ${qtyWarning}
+          </div>
+        </div>
+      `;
+    }
+
+    // ── WhatsApp ────────────────────────────────────────────────────────────
+    function buildWhatsAppLink(found, missing) {
+      const lines = ['🃏 *Consulta de cartas MTG - Inspirit Shop*\n'];
+
+      const available = found.filter(c => c.has_enough);
+      const partial = found.filter(c => !c.has_enough);
+
+      if (available.length > 0) {
+        lines.push('✅ *Disponibles:*');
+        available.forEach(c => lines.push(`  • ${c.requested_qty}x ${c.name}`));
+      }
+      if (partial.length > 0) {
+        lines.push('\n⚠️ *Disponibilidad parcial:*');
+        partial.forEach(c => lines.push(`  • ${c.name} (pedí ${c.requested_qty}, hay ${c.available_qty})`));
+      }
+      if (missing.length > 0) {
+        lines.push('\n❌ *No disponibles:*');
+        missing.forEach(c => lines.push(`  • ${c.requested_qty}x ${c.name}`));
+      }
+
+      lines.push('\n_¿Precio y disponibilidad para coordinar?_');
+      const msg = encodeURIComponent(lines.join('\n'));
+      document.getElementById('whatsapp-btn').href = `https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`;
+    }
+
+    // ── Utils ───────────────────────────────────────────────────────────────
+    function showLoading(visible) {
+      document.getElementById('loading').classList.toggle('visible', visible);
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('error-msg');
+      el.textContent = `⚠ ${msg}`;
+      el.classList.add('visible');
+    }
+
+    function hideError() {
+      document.getElementById('error-msg').classList.remove('visible');
+    }
+
+    function clearResults() {
+      document.getElementById('results').classList.remove('visible');
+      document.getElementById('block-found').style.display = 'none';
+      document.getElementById('block-missing').style.display = 'none';
+      document.getElementById('cards-grid').innerHTML = '';
+      document.getElementById('missing-list').innerHTML = '';
+      document.getElementById('cta-section').classList.remove('visible');
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    // Enter en el campo de URL también busca
+    document.getElementById('input-deck')?.addEventListener('keydown', e => {
+      if (e.key === 'Enter') runSearch();
+    });
+  </script>
+
+</body>
+</html>
